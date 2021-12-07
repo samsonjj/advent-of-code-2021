@@ -1,14 +1,19 @@
-use std::error::Error;
+#![feature(box_syntax)]
+use aoc_util::{solve_and_print, AocResult};
 use std::num::ParseIntError;
 
-const INPUT: &str = include_str!("input.txt");
+const INPUT: &str = include_str!("../input.txt");
 
 fn parse(s: &str) -> Result<i32, ParseIntError> {
     Ok(s.parse::<i32>()?)
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut iter = INPUT.lines();
+fn main() {
+    solve_and_print(INPUT, box part_1, box part_2);
+}
+
+fn part_1(input: &str) -> AocResult {
+    let mut iter = input.lines();
     let mut last = parse(iter.next().unwrap())?;
     let mut sum = 0;
     for line in iter {
@@ -19,9 +24,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         last = num;
     }
 
-    println!("{}", sum);
+    Ok(box sum)
+}
 
-    let nums = INPUT
+fn part_2(input: &str) -> AocResult {
+    let nums = input
         .lines()
         .map(|line| parse(line).unwrap())
         .collect::<Vec<i32>>();
@@ -35,7 +42,5 @@ fn main() -> Result<(), Box<dyn Error>> {
         window = num;
     }
 
-    println!("{}", sum);
-
-    Ok(())
+    Ok(box sum)
 }

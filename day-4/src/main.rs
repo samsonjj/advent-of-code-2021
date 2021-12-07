@@ -1,7 +1,7 @@
-#![feature(assert_matches)]
+#![feature(box_syntax)]
+static INPUT: &str = include_str!("input.txt");
 
-const INPUT: &str = include_str!("input.txt");
-
+use aoc_util::{solve_and_print, AocResult};
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -14,65 +14,26 @@ pub struct BingoBoard {
 }
 
 impl BingoBoard {
-    // returns the score if the board has won
-    pub fn hit(&mut self, num: i32) -> Option<(usize, usize)> {
+    pub fn hit(&mut self, num: i32) {
         if let Some((i, j)) = self.numbers.get(&num) {
             self.marked[*i][*j] = true;
-            return Some((*i, *j));
         }
-        None
     }
 
     pub fn won(&self) -> bool {
-        for a in 0..5 {
-            let mut row_win = true;
-            let mut col_win = true;
-            for b in 0..5 {
-                if !self.marked[a][b] {
-                    row_win = false;
-                }
-                if !self.marked[b][a] {
-                    col_win = false;
-                }
-            }
-            if row_win || col_win {
-                return true;
-            }
-        }
-        false
+        return (0..5).into_iter().any(|a| {
+            (0..5).into_iter().all(|b| self.marked[a][b])
+                || (0..5).into_iter().all(|b| self.marked[b][a])
+        });
     }
 
     pub fn score(&self, num: i32) -> i32 {
         self.numbers
             .iter()
-            .filter_map(|(num, (i, j))| {
-                if !self.marked[*i][*j] {
-                    Some(*num)
-                } else {
-                    None
-                }
-            })
+            .filter(|(_, pos)| !self.marked[pos.0][pos.1])
+            .map(|(num, _)| num)
             .sum::<i32>()
             * num
-    }
-}
-
-impl std::fmt::Display for BingoBoard {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for row in self.marked.iter() {
-            for col in row.iter() {
-                write!(
-                    f,
-                    "{}",
-                    match col {
-                        true => "X",
-                        false => " ",
-                    }
-                )?;
-            }
-            write!(f, "\n")?;
-        }
-        Ok(())
     }
 }
 
@@ -94,19 +55,23 @@ impl std::str::FromStr for BingoBoard {
 }
 
 fn main() {
-    let mut parts = INPUT.split("\n\n");
+    solve_and_print(INPUT, box part_1, box part_2);
+}
 
-    // parse numbers that will be called in order
-    let numbers_order_str = parts.next().unwrap();
-    let numbers: Vec<i32> = numbers_order_str
+fn parse_input(input: &str) -> (Vec<i32>, Vec<BingoBoard>) {
+    let mut parts = input.split("\n\n");
+    let numbers: Vec<i32> = parts
+        .next()
+        .unwrap()
         .split(',')
-        .flat_map(i32::from_str)
+        .map(|s| s.parse().unwrap())
         .collect();
+    let boards: Vec<BingoBoard> = parts.flat_map(BingoBoard::from_str).collect();
+    (numbers, boards)
+}
 
-    // parse boards
-    let boards_tmp: Vec<BingoBoard> = parts.flat_map(BingoBoard::from_str).collect();
-    let mut boards = boards_tmp.clone();
-
+fn part_1(input: &str) -> AocResult<Box<i32>> {
+    let (numbers, mut boards) = parse_input(input);
     let mut score = None;
     for num in numbers.iter() {
         for ref mut board in boards.iter_mut() {
@@ -121,9 +86,11 @@ fn main() {
         }
     }
 
-    println!("{}", score.unwrap());
+    Ok(box score.unwrap())
+}
 
-    let mut boards: Vec<BingoBoard> = boards_tmp;
+fn part_2(input: &str) -> AocResult<Box<i32>> {
+    let (numbers, mut boards) = parse_input(input);
     let mut score = None;
 
     for num in numbers.iter() {
@@ -131,7 +98,7 @@ fn main() {
             for board in boards.iter_mut() {
                 board.hit(*num);
             }
-            boards = boards.into_iter().filter(|board| !board.won()).collect();
+            boards.retain(|board| !board.won());
         } else {
             boards[0].hit(*num);
             if boards[0].won() {
@@ -141,11 +108,14 @@ fn main() {
         }
     }
 
-    println!("{}", score.unwrap());
+    Ok(box score.unwrap())
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
+    static EXAMPLE: &'static str = include_str!("example.txt");
 
     #[test]
     fn won() {
@@ -158,11 +128,8 @@ mod tests {
         )
         .unwrap();
 
-        for i in 0..5 {
-            for j in 0..5 {
-                assert_eq!(bingo_board.won(), false);
-            }
-        }
+        assert_eq!(bingo_board.won(), false);
+
         bingo_board.marked[2][0] = true;
         bingo_board.marked[2][1] = true;
         bingo_board.marked[2][2] = true;
@@ -171,5 +138,17 @@ mod tests {
 
         bingo_board.marked[2][4] = true;
         assert_eq!(bingo_board.won(), true);
+    }
+
+    #[test]
+    fn part_1_matches_example() {
+        use super::part_1;
+        assert_eq!(part_1(EXAMPLE).unwrap(), box 4512);
+    }
+
+    #[test]
+    fn part_2_matches_example() {
+        use super::part_2;
+        assert_eq!(part_2(EXAMPLE).unwrap(), box 1924);
     }
 }
