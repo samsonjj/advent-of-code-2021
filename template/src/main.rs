@@ -10,10 +10,19 @@ fn main() {
 }
 
 fn part_1(input: &str) -> AocResult<i32> {
-    println!("{}", input);
     Ok(3)
 }
 
 fn part_2(input: &str) -> AocResult<i32> {
     Ok(5)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn two_plus_two() {
+        assert_eq!(2 + 2, 4);
+    }
 }

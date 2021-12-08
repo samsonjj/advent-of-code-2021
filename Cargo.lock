@@ -199,9 +199,19 @@ dependencies = [
 [[package]]
 name = "day-6"
 version = "0.1.0"
+dependencies = [
+ "aoc-util",
+]
 
 [[package]]
 name = "day-7"
+version = "0.1.0"
+dependencies = [
+ "aoc-util",
+]
+
+[[package]]
+name = "day-8"
 version = "0.1.0"
 dependencies = [
  "aoc-util",
@@ -1108,6 +1118,13 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi",
+]
+
+[[package]]
+name = "template"
+version = "0.1.0"
+dependencies = [
+ "aoc-util",
 ]
 
 [[package]]
